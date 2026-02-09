@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Panel - STCEx MultiPosition</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+  <script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h2>🛡️ Admin Panel (Owner Only)</h2>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <div class="muted">Wallet</div>
+        <div id="wallet" class="mono">❌ ยังไม่เชื่อมต่อ</div>
+        <div class="muted" style="margin-top:6px">
+          Contract: <span id="contract" class="mono">-</span><br/>
+          Owner: <span id="owner" class="mono">-</span><br/>
+          You are owner: <span id="isOwner" class="mono">-</span>
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnConnect">เชื่อมต่อกระเป๋า</button>
+        <button id="btnRefresh" disabled>Refresh</button>
+      </div>
+    </div>
+    <div id="status" class="status">-</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>🏦 Contract Balances</h3>
+      <div class="muted">ยอดเหรียญที่อยู่ใน Contract (สำคัญก่อนเปิดให้คนใช้)</div>
+      <div class="hr"></div>
+
+      <div class="muted">USDT in Contract: <span id="cUSDT" class="mono">-</span></div>
+      <div class="muted">STCEx in Contract: <span id="cSTCEx" class="mono">-</span></div>
+      <div class="muted">STC in Contract: <span id="cSTC" class="mono">-</span></div>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ Current Params</h3>
+      <div class="muted">ดึงค่าจริงจาก Contract</div>
+      <div class="hr"></div>
+
+      <div class="muted">stcexPerUsdt: <span id="p1" class="mono">-</span></div>
+      <div class="muted">stcPerStcex: <span id="p2" class="mono">-</span></div>
+      <div class="muted">minStakeSTCEx: <span id="p3" class="mono">-</span></div>
+      <div class="muted">lockSeconds: <span id="p4" class="mono">-</span></div>
+      <div class="muted">periodSeconds: <span id="p5" class="mono">-</span></div>
+      <div class="muted">rewardBps: <span id="p6" class="mono">-</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🧰 setParams (Owner Only)</h3>
+    <div class="muted">ปรับเรท/ขั้นต่ำ/ล็อก/รอบ/ดอก (ค่าเป็นตัวเลขดิบตาม contract)</div>
+    <div class="hr"></div>
+
+    <div class="grid">
+      <div>
+        <div class="muted">stcexPerUsdt (1e18 = 1.0)</div>
+        <input id="in1" placeholder="เช่น 1000000000000000000" />
+      </div>
+      <div>
+        <div class="muted">stcPerStcex (1000e18 = 1000)</div>
+        <input id="in2" placeholder="เช่น 1000000000000000000000" />
+      </div>
+      <div>
+        <div class="muted">minStakeSTCEx (10e18 = 10)</div>
+        <input id="in3" placeholder="เช่น 10000000000000000000" />
+      </div>
+      <div>
+        <div class="muted">lockSeconds (365d = 31536000)</div>
+        <input id="in4" placeholder="เช่น 31536000" />
+      </div>
+      <div>
+        <div class="muted">periodSeconds (30d = 2592000)</div>
+        <input id="in5" placeholder="เช่น 2592000" />
+      </div>
+      <div>
+        <div class="muted">rewardBps (1000 = 10%)</div>
+        <input id="in6" placeholder="เช่น 1000" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="btnSetParams" disabled>Apply setParams</button>
+      <button id="btnTestMode" disabled>Test Mode (5m lock / 1m period)</button>
+      <button id="btnProdMode" disabled>Prod Mode (365d lock / 30d period / 10%)</button>
+    </div>
+
+    <div class="muted" style="margin-top:10px">
+      ⚠️ Test Mode ใช้เพื่อทดสอบ “ถอนรายก้อน” ให้เห็นผลเร็ว แล้วค่อยตั้งกลับ Prod
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>💸 ownerWithdrawToken (Owner Only)</h3>
+    <div class="muted">ถอนเหรียญออกจาก Contract (ระวังอย่าถอน STC จนไม่พอจ่ายผู้ใช้)</div>
+    <div class="hr"></div>
+
+    <div class="grid">
+      <div>
+        <div class="muted">Token Address</div>
+        <input id="wToken" placeholder="เช่น USDT / STCEx / STC address" />
+        <div class="muted" style="margin-top:6px">
+          USDT: <span class="mono" id="addrUSDT">-</span><br/>
+          STCEx: <span class="mono" id="addrSTCEx">-</span><br/>
+          STC: <span class="mono" id="addrSTC">-</span>
+        </div>
+      </div>
+      <div>
+        <div class="muted">Amount (wei)</div>
+        <input id="wAmt" placeholder="เช่น 100000000000000000000 = 100 tokens(18dec)" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="btnWithdrawToken" disabled>Withdraw Token</button>
+      <button id="btnFillUSDT" disabled>Fill USDT</button>
+      <button id="btnFillSTCEx" disabled>Fill STCEx</button>
+      <button id="btnFillSTC" disabled>Fill STC</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
